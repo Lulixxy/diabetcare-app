@@ -1,15 +1,33 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLiff } from "@/src/context/LiffContext";
 import { FaTint, FaSyringe, FaPlus, FaClock, FaHeartbeat } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function DashboardPage() {
     const router = useRouter();
     const [data, setData] = useState({ glucoseLogs: [], insulinDoses: [] });
     const [fetchingData, setFetchingData] = useState(false);
     const { userId, loading } = useLiff();
+
+    const timelineData = useMemo(() => {
+        const logs = [
+            ...data.glucoseLogs.map((item: any) => ({ ...item, type: "glucose" })),
+            ...data.insulinDoses.map((item: any) => ({ ...item, type: "insulin" })),
+        ];
+        return logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [data]);
+
+    const chartData = useMemo(() => {
+        return data.glucoseLogs
+            .map((log: any) => ({
+                time: new Date(log.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' }),
+                value: log.value,
+            }))
+            .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    }, [data.glucoseLogs]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -21,11 +39,9 @@ export default function DashboardPage() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ userId: userId }),
                 });
-                if (dashRes.ok) {
-                    setData(await dashRes.json());
-                }
+                if (dashRes.ok) setData(await dashRes.json());
             } catch (error) {
-                console.error("Error fetching dashboard data:", error);
+                console.error("Error:", error);
             } finally {
                 setFetchingData(false);
             }
@@ -61,53 +77,54 @@ export default function DashboardPage() {
         <div className="p-6 max-w-md mx-auto space-y-6 bg-slate-50 min-h-screen">
             <header className="mb-8">
                 <h1 className="text-2xl font-extrabold text-slate-800">สวัสดีค่ะ Luli</h1>
-                <p className="text-slate-500">วันนี้คุณรู้สึกอย่างไรบ้างคะ?</p>
             </header>
 
-            {/* Glucose Card */}
+            {/* กราฟแท่งน้ำตาล */}
+            <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-64">
+                <h2 className="font-bold text-slate-800 mb-4">ระดับน้ำตาลวันนี้ ($mg/dL$)</h2>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                        <XAxis dataKey="time" hide />
+                        <YAxis hide domain={[0, 'auto']} />
+                        <Tooltip cursor={{ fill: '#f1f5f9' }} />
+                        <Bar dataKey="value" fill="#e11d48" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </section>
+
+            {/* รวมรายการบันทึก (Timeline) */}
             <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-red-100 text-red-500 rounded-lg"><FaTint /></div>
-                    <h2 className="font-bold text-slate-800">ระดับน้ำตาลในเลือด</h2>
-                </div>
-                {data.glucoseLogs.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูลในวันนี้</p>
-                ) : (
-                    data.glucoseLogs.map((log: any) => (
-                        <div key={log.id} className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0">
-                            <span className="text-xl font-bold text-teal-700">{log.value} <span className="text-sm font-normal text-slate-400">mg/dL</span></span>
-                            <div className="flex items-center gap-1 text-xs text-slate-400">
-                                <FaClock /> {new Date(log.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' })}
+                <h2 className="font-bold text-slate-800 mb-4">ประวัติสุขภาพ</h2>
+                <div className="space-y-4">
+                    {timelineData.length === 0 ? (
+                        <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูล</p>
+                    ) : (
+                        timelineData.map((item: any) => (
+                            <div key={item.id} className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${item.type === 'glucose' ? 'bg-red-100 text-red-500' : 'bg-blue-100 text-blue-500'}`}>
+                                        {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-700">
+                                            {item.type === 'glucose' ? `${item.value} mg/dL` : `${item.units} Units`}
+                                        </p>
+                                        <p className="text-xs text-slate-400">
+                                            {new Date(item.createdAt).toLocaleString("th-TH", { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))
-                )}
-            </section>
-
-            {/* Insulin Card */}
-            <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-blue-100 text-blue-500 rounded-lg"><FaSyringe /></div>
-                    <h2 className="font-bold text-slate-800">การฉีดอินซูลิน</h2>
+                        ))
+                    )}
                 </div>
-                {data.insulinDoses.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูลในวันนี้</p>
-                ) : (
-                    data.insulinDoses.map((dose: any) => (
-                        <div key={dose.id} className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0">
-                            <span className="font-semibold text-slate-700">{dose.units} Units</span>
-                            <span className="text-xs px-2 py-1 bg-slate-100 rounded-md text-slate-600">{dose.type === "rapid" ? "ฤทธิ์เร็ว" : "ฤทธิ์นาน"}</span>
-                        </div>
-                    ))
-                )}
             </section>
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-4 pt-4">
-                <Link href="/log-glucose" className="flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-lg shadow-slate-200">
+                <Link href="/log-glucose" className="flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold">
                     <FaPlus /> น้ำตาล
                 </Link>
-                <Link href="/log-insulin" className="flex items-center justify-center gap-2 bg-teal-600 text-white py-4 rounded-2xl font-bold hover:bg-teal-700 transition-all shadow-lg shadow-teal-200">
+                <Link href="/log-insulin" className="flex items-center justify-center gap-2 bg-teal-600 text-white py-4 rounded-2xl font-bold">
                     <FaPlus /> อินซูลิน
                 </Link>
             </div>
