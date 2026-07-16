@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useLiff } from "@/src/context/LiffContext";
@@ -9,24 +9,53 @@ export default function LogGlucosePage() {
     const router = useRouter();
     const [formData, setFormData] = useState({ value: "", type: "fasting", mealType: "breakfast", note: "" });
     const { userId, loading } = useLiff();
+    const [logs, setLogs] = useState([]);
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const fetchLogs = async () => {
+        if (!userId) return;
+        const res = await fetch(`/api/glucose/list?userId=${userId}`);
+        const data = await res.json();
+        setLogs(data);
+    };
+
+    useEffect(() => {
+        if (userId) fetchLogs();
+    }, [userId]);
 
     if (loading) return <div className="flex h-screen items-center justify-center">กำลังโหลด...</div>;
     if (!userId) return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
 
+    const handleDelete = async (id: string) => {
+        await fetch("/api/glucose", { method: "DELETE", body: JSON.stringify({ id }) });
+        fetchLogs();
+        toast.success("ลบรายการแล้วค่ะ");
+    };
+
+    const startEdit = (log: any) => {
+        setEditingId(log.id);
+        setFormData({ value: log.value, type: log.type, mealType: log.mealType, note: log.note });
+    };
+
     const handleSubmit = async () => {
+        const url = editingId ? "/api/glucose" : "/api/glucose/log";
+        const method = editingId ? "PUT" : "POST";
+
         if (!formData.value) {
             toast.error("กรุณากรอกระดับน้ำตาลค่ะ");
             return;
         }
-        const res = await fetch("/api/glucose/log", {
-            method: "POST",
+        const res = await fetch(url, {
+            method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...formData, userId }),
         });
 
         if (res.ok) {
-            toast.success("บันทึกข้อมูลเรียบร้อยค่ะ");
-            router.push("/dashboard");
+            toast.success(editingId ? "แก้ไขเรียบร้อยค่ะ" : "บันทึกเรียบร้อยค่ะ");
+            setEditingId(null);
+            fetchLogs();
+            setFormData({ value: "", type: "fasting", mealType: "breakfast", note: "" });
         } else {
             toast.error("เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะคะ");
         }
@@ -99,6 +128,25 @@ export default function LogGlucosePage() {
                     <FaSave /> บันทึกข้อมูล
                 </button>
             </div>
+
+            <div className="mt-8">
+                <h2 className="text-lg font-bold text-slate-800 mb-4">รายการบันทึกล่าสุด</h2>
+                <div className="space-y-3">
+                    {logs.map((log: any) => (
+                        <div key={log.id} className="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <p className="text-xl font-black text-teal-700">{log.value} mg/dL</p>
+                                <p className="text-xs text-slate-500">{log.type} • {log.mealType}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => startEdit(log)} className="text-blue-500 text-sm">แก้ไข</button>
+                                <button onClick={() => handleDelete(log.id)} className="text-red-500 text-sm">ลบ</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
         </div>
     );
 }
