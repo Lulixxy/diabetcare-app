@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useLiff } from "@/src/context/LiffContext";
-import { FaSyringe, FaArrowLeft, FaSave, FaClock } from "react-icons/fa";
+import { FaSyringe, FaArrowLeft, FaSave } from "react-icons/fa";
+import { FaRegPenToSquare } from "react-icons/fa6";
+import { LuTrash2 } from "react-icons/lu";
 
 export default function LogInsulinPage() {
     const router = useRouter();
@@ -169,8 +171,8 @@ export default function LogInsulinPage() {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-1">
-                                <button onClick={() => startEdit(dose)} className="text-blue-500 text-xs font-bold hover:bg-blue-50 px-3 py-1 rounded-full transition-all">แก้ไข</button>
-                                <button onClick={() => handleDelete(dose.id)} className="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1 rounded-full transition-all">ลบ</button>
+                                <button onClick={() => startEdit(dose)} className="text-blue-500 text-xs font-bold hover:bg-blue-50 px-3 py-1 rounded-full transition-all"><FaRegPenToSquare /></button>
+                                <button onClick={() => handleDelete(dose.id)} className="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1 rounded-full transition-all"><LuTrash2 /></button>
                             </div>
                         </div>
                     ))}
