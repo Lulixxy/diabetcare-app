@@ -3,10 +3,8 @@ import { prisma } from "@/src/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    // รับค่าจากหน้าสมัครสมาชิก
     const { line_user_id, name } = await request.json();
 
-    // บันทึก User ใหม่ลงฐานข้อมูล
     const newUser = await prisma.user.create({
       data: {
         line_user_id: line_user_id,

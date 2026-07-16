@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
-import liff from "@line/liff"; // เราจะตรวจสอบ user จาก LINE ในฝั่ง client แต่ฝั่ง server ใช้ userId
+import liff from "@line/liff"; 
 
 export async function POST(request: Request) {
   try {

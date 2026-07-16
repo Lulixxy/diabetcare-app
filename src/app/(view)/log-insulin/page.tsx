@@ -1,26 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
-import liff from "@line/liff";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useLiff } from "@/src/context/LiffContext";
 
 export default function LogInsulinPage() {
     const router = useRouter();
     const [units, setUnits] = useState("");
-    const [type, setType] = useState("rapid"); // default เป็นแบบออกฤทธิ์เร็ว
-    const [userId, setUserId] = useState("");
+    const [type, setType] = useState("rapid");
 
-    useEffect(() => {
-        liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! }).then(async () => {
-            const profile = await liff.getProfile();
-            const res = await fetch(`/api/auth/check`, {
-                method: "POST",
-                body: JSON.stringify({ line_user_id: profile.userId }),
-            });
-            const data = await res.json();
-            setUserId(data.user.id);
-        });
-    }, []);
+    const { userId, loading } = useLiff();
+
+    if (loading) return <div>กำลังโหลดข้อมูล...</div>;
+    if (!userId) return <div>กรุณาล็อกอินก่อนนะคะ</div>;
 
     const handleSubmit = async () => {
         if (!units) return toast.error("กรุณาระบุจำนวนหน่วยค่ะ");
@@ -28,7 +20,7 @@ export default function LogInsulinPage() {
         const res = await fetch("/api/insulin/log", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, units, type }),
+            body: JSON.stringify({ userId, units: parseFloat(units), type }),
         });
 
         if (res.ok) {
@@ -65,7 +57,10 @@ export default function LogInsulinPage() {
                 </select>
             </div>
 
-            <button onClick={handleSubmit} className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold hover:bg-teal-800 transition-all">
+            <button
+                onClick={handleSubmit}
+                className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold hover:bg-teal-800 transition-all"
+            >
                 บันทึกการฉีด
             </button>
         </div>

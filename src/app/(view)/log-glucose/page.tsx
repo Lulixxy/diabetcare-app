@@ -1,36 +1,30 @@
 "use client";
-import { useState, useEffect } from "react";
-import liff from "@line/liff";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useLiff } from "@/src/context/LiffContext";
 
 export default function LogGlucosePage() {
     const router = useRouter();
     const [formData, setFormData] = useState({ value: "", type: "fasting", mealType: "breakfast", note: "" });
-    const [userId, setUserId] = useState("");
 
-    useEffect(() => {
-        liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! }).then(async () => {
-            const profile = await liff.getProfile();
-            // ค้นหา ID ของ User ในระบบเราจาก line_user_id
-            const res = await fetch(`/api/auth/check`, {
-                method: "POST",
-                body: JSON.stringify({ line_user_id: profile.userId }),
-            });
-            const data = await res.json();
-            setUserId(data.user.id);
-        });
-    }, []);
+    const { userId, loading } = useLiff();
+
+    if (loading) return <div>กำลังโหลดข้อมูล...</div>;
+    if (!userId) return <div>กรุณาล็อกอินก่อนนะคะ</div>;
 
     const handleSubmit = async () => {
         const res = await fetch("/api/glucose/log", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...formData, userId }),
         });
 
         if (res.ok) {
             toast.success("บันทึกข้อมูลเรียบร้อยค่ะ");
             router.push("/dashboard");
+        } else {
+            toast.error("เกิดข้อผิดพลาดค่ะ");
         }
     };
 

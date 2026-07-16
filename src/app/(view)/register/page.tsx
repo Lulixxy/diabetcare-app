@@ -1,32 +1,30 @@
 'use client'
-import { useState, useEffect } from 'react';
-import liff from '@line/liff';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLiff } from "@/src/context/LiffContext";
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
-    const [lineUserId, setLineUserId] = useState('');
     const router = useRouter();
-
-    useEffect(() => {
-        liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! }).then(async () => {
-            const profile = await liff.getProfile();
-            setLineUserId(profile.userId);
-        });
-    }, []);
+    const { userId, loading } = useLiff();
 
     async function handleRegister() {
+        if (!userId) return alert("ไม่พบข้อมูลผู้ใช้จาก LINE ค่ะ");
+
         const res = await fetch('/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ line_user_id: lineUserId, name }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ line_user_id: userId, name }),
         });
 
         if (res.ok) {
-            router.push('/dashboard'); // สมัครเสร็จ ไปหน้า Dashboard เลย!
+            router.push('/dashboard');
         } else {
             alert("เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะคะ");
         }
     }
+
+    if (loading) return <div>กำลังเตรียมระบบสมัครสมาชิก...</div>;
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50">
