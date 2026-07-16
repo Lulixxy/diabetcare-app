@@ -182,9 +182,21 @@ export default function LogGlucosePage() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-2">
-                                <button onClick={() => startEdit(log)} className="text-blue-500 text-xs font-bold hover:bg-blue-50 px-3 py-1 rounded-full transition-all"><FaRegPenToSquare /></button>
-                                <button onClick={() => handleDelete(log.id)} className="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1 rounded-full transition-all"><LuTrash2 /></button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => startEdit(log)}
+                                    className="flex items-center justify-center p-3 text-blue-600 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-all active:scale-95"
+                                    aria-label="แก้ไข"
+                                >
+                                    <FaRegPenToSquare className="text-xl" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(log.id)}
+                                    className="flex items-center justify-center p-3 text-red-600 bg-red-50 rounded-2xl hover:bg-red-100 transition-all active:scale-95"
+                                    aria-label="ลบ"
+                                >
+                                    <LuTrash2 className="text-xl" />
+                                </button>
                             </div>
                         </div>
                     ))}
