@@ -3,8 +3,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLiff } from "@/src/context/LiffContext";
-import { FaTint, FaSyringe, FaPlus, FaClock, FaHeartbeat } from "react-icons/fa";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { FaTint, FaSyringe, FaPlus, FaHeartbeat } from "react-icons/fa";
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -21,12 +21,12 @@ export default function DashboardPage() {
     }, [data]);
 
     const chartData = useMemo(() => {
-        return data.glucoseLogs
+        return [...data.glucoseLogs]
+            .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
             .map((log: any) => ({
                 time: new Date(log.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' }),
                 value: log.value,
-            }))
-            .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+            }));
     }, [data.glucoseLogs]);
 
     useEffect(() => {
@@ -81,13 +81,16 @@ export default function DashboardPage() {
 
             {/* กราฟแท่งน้ำตาล */}
             <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-64">
-                <h2 className="font-bold text-slate-800 mb-4">ระดับน้ำตาลวันนี้ ($mg/dL$)</h2>
-                <ResponsiveContainer width="100%" height="100%">
+                <h2 className="font-bold text-slate-800 mb-4">ระดับน้ำตาล (mg/dL)</h2>
+                <ResponsiveContainer width="100%" height="80%">
                     <BarChart data={chartData}>
                         <XAxis dataKey="time" hide />
-                        <YAxis hide domain={[0, 'auto']} />
                         <Tooltip cursor={{ fill: '#f1f5f9' }} />
-                        <Bar dataKey="value" fill="#e11d48" radius={[8, 8, 0, 0]} />
+                        <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                            {chartData.map((entry: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={entry.value > 150 ? "#ef4444" : "#14b8a6"} />
+                            ))}
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </section>
@@ -97,43 +100,37 @@ export default function DashboardPage() {
                 <h2 className="font-bold text-slate-800 mb-4">ประวัติสุขภาพ</h2>
                 <div className="space-y-4">
                     {timelineData.length === 0 ? (
-                        <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูล</p>
+                        <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูลวันนี้</p>
                     ) : (
-
                         timelineData.map((item: any) => (
-                            <div key={item.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                            <div key={item.id} className="flex items-center justify-between py-2">
                                 <div className="flex items-center gap-3">
-                                    {/* ไอคอน */}
-                                    <div className={`p-2.5 rounded-2xl ${item.type === 'glucose' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
+                                    <div className={`p-2.5 rounded-2xl ${item.type === 'glucose' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
                                         {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
                                     </div>
-                                    {/* รายละเอียด */}
                                     <div>
                                         <p className="font-bold text-slate-800 text-sm">
                                             {item.type === 'glucose' ? `${item.value} mg/dL` : `${item.units} Units`}
                                         </p>
-                                        <p className="text-[10px] text-slate-400">
-                                            {item.type === 'glucose' ? "ระดับน้ำตาล" : "อินซูลิน"}
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">
+                                            {item.type === 'glucose' ? "ระดับน้ำตาล" : (item.type === 'insulin' && item.type_name === 'long' ? "อินซูลิน (ฤทธิ์นาน)" : "อินซูลิน (ฤทธิ์เร็ว)")}
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* เวลา - ให้ชิดขวาเหมือนในรูปน้องชาย */}
-                                <p className="text-xs font-medium text-slate-500">
+                                <p className="text-xs font-bold text-slate-400">
                                     {new Date(item.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
                         ))
-
                     )}
                 </div>
             </section>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
-                <Link href="/log-glucose" className="flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold">
+                <Link href="/log-glucose" className="flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-200">
                     <FaPlus /> น้ำตาล
                 </Link>
-                <Link href="/log-insulin" className="flex items-center justify-center gap-2 bg-teal-600 text-white py-4 rounded-2xl font-bold">
+                <Link href="/log-insulin" className="flex items-center justify-center gap-2 bg-teal-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-200">
                     <FaPlus /> อินซูลิน
                 </Link>
             </div>
