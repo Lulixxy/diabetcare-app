@@ -29,6 +29,24 @@ export default function DashboardPage() {
             }));
     }, [data.glucoseLogs]);
 
+    const groupedData = useMemo(() => {
+        const allLogs = [
+            ...data.glucoseLogs.map((item: any) => ({ ...item, type: "glucose", time: new Date(item.createdAt).getTime() })),
+            ...data.insulinDoses.map((item: any) => ({ ...item, type: "insulin", time: new Date(item.createdAt).getTime() })),
+        ].sort((a, b) => b.time - a.time);
+
+        const groups: any[] = [];
+        allLogs.forEach((log) => {
+            const lastGroup = groups[groups.length - 1];
+            if (lastGroup && Math.abs(lastGroup.time - log.time) < 5 * 60 * 1000) {
+                lastGroup.items.push(log);
+            } else {
+                groups.push({ time: log.time, items: [log] });
+            }
+        });
+        return groups;
+    }, [data]);
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             if (!userId) return;
@@ -103,26 +121,30 @@ export default function DashboardPage() {
                     {timelineData.length === 0 ? (
                         <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูลวันนี้</p>
                     ) : (
-                        timelineData.map((item: any) => (
-                            <div key={item.id} className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-3 rounded-2xl ${item.type === 'glucose' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
-                                        {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
+
+                        groupedData.map((group, index) => (
+                            <div key={index} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-3">
+                                {group.items.map((item: any) => (
+                                    <div key={item.id} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-xl ${item.type === 'glucose' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
+                                                {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800 text-sm">
+                                                    {item.type === 'glucose' ? `${item.value} mg/dL` : `${item.units} Units`}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-slate-800 text-sm">
-                                            {item.type === 'glucose' ? `${item.value} mg/dL` : `${item.units} Units`}
-                                        </p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">
-                                            {item.type === 'glucose' ? "ระดับน้ำตาล" : (item.type === 'insulin' && item.type_name === 'long' ? "อินซูลิน (ฤทธิ์นาน)" : "อินซูลิน (ฤทธิ์เร็ว)")}
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-xs font-bold text-slate-400">
-                                    {new Date(item.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' })}
+                                ))}
+                                {/* แสดงเวลาตรงท้ายกลุ่มเพื่อให้ดูสะอาดตา */}
+                                <p className="text-[10px] text-slate-400 font-bold border-t pt-2 text-right">
+                                    {new Date(group.time).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
                         ))
+
                     )}
                 </div>
             </section>
