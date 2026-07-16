@@ -27,14 +27,34 @@ export default function LogGlucosePage() {
     if (!userId) return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
 
     const handleDelete = async (id: string) => {
-        await fetch("/api/glucose", { method: "DELETE", body: JSON.stringify({ id }) });
-        fetchLogs();
-        toast.success("ลบรายการแล้วค่ะ");
+        try {
+            const res = await fetch("/api/glucose", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ id }),
+            });
+
+            if (res.ok) {
+                await fetchLogs();
+                toast.success("ลบรายการแล้วค่ะ");
+            } else {
+                toast.error("ลบไม่สำเร็จ");
+            }
+        } catch {
+            toast.error("เกิดข้อผิดพลาด");
+        }
     };
 
     const startEdit = (log: any) => {
         setEditingId(log.id);
-        setFormData({ value: log.value, type: log.type, mealType: log.mealType, note: log.note });
+        setFormData({
+            value: String(log.value),
+            type: log.type,
+            mealType: log.mealType,
+            note: log.note ?? "",
+        });
     };
 
     const handleSubmit = async () => {
@@ -48,13 +68,17 @@ export default function LogGlucosePage() {
         const res = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...formData, userId }),
+            body: JSON.stringify({
+                id: editingId,
+                ...formData,
+                userId,
+            })
         });
 
         if (res.ok) {
             toast.success(editingId ? "แก้ไขเรียบร้อยค่ะ" : "บันทึกเรียบร้อยค่ะ");
             setEditingId(null);
-            fetchLogs();
+            await fetchLogs();
             setFormData({ value: "", type: "fasting", mealType: "breakfast", note: "" });
         } else {
             toast.error("เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะคะ");
@@ -77,7 +101,7 @@ export default function LogGlucosePage() {
                     </label>
                     <input
                         type="number"
-                        placeholder="0"
+                        value={formData.value}
                         className="w-full text-2xl font-bold text-teal-700 outline-none"
                         onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                     />
@@ -89,7 +113,7 @@ export default function LogGlucosePage() {
                         <label className="text-xs font-bold text-slate-400 flex items-center gap-2 mb-2">
                             <FaClock /> ช่วงเวลา
                         </label>
-                        <select className="w-full text-slate-700 outline-none font-medium bg-transparent" onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
+                        <select className="w-full text-slate-700 outline-none font-medium bg-transparent" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
                             <option value="fasting">ก่อนอาหาร</option>
                             <option value="after-meal">หลังอาหาร</option>
                         </select>
@@ -99,7 +123,7 @@ export default function LogGlucosePage() {
                         <label className="text-xs font-bold text-slate-400 flex items-center gap-2 mb-2">
                             <FaUtensils /> มื้ออาหาร
                         </label>
-                        <select className="w-full text-slate-700 outline-none font-medium bg-transparent" onChange={(e) => setFormData({ ...formData, mealType: e.target.value })}>
+                        <select className="w-full text-slate-700 outline-none font-medium bg-transparent" value={formData.mealType} onChange={(e) => setFormData({ ...formData, mealType: e.target.value })}>
                             <option value="breakfast">มื้อเช้า</option>
                             <option value="lunch">มื้อเที่ยง</option>
                             <option value="dinner">มื้อเย็น</option>
@@ -116,6 +140,7 @@ export default function LogGlucosePage() {
                     <textarea
                         placeholder="เช่น มื้อนี้ทานอะไรมา..."
                         className="w-full text-slate-700 outline-none resize-none h-20"
+                        value={formData.note}
                         onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                     />
                 </div>
@@ -125,7 +150,8 @@ export default function LogGlucosePage() {
                     onClick={handleSubmit}
                     className="w-full bg-teal-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-teal-700 transition-all shadow-lg shadow-teal-200"
                 >
-                    <FaSave /> บันทึกข้อมูล
+                    <FaSave />
+                    {editingId ? "บันทึกการแก้ไข" : "บันทึกข้อมูล"}
                 </button>
             </div>
 
