@@ -27,24 +27,33 @@ export default function LogGlucosePage() {
     if (!userId) return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
 
     const handleDelete = async (id: string) => {
-        try {
-            const res = await fetch("/api/glucose", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id }),
-            });
+        toast("คุณต้องการลบรายการนี้ใช่ไหมคะ?", {
+            action: {
+                label: "ยืนยันการลบ",
+                onClick: async () => {
+                    try {
+                        const res = await fetch("/api/glucose", {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id }),
+                        });
 
-            if (res.ok) {
-                await fetchLogs();
-                toast.success("ลบรายการแล้วค่ะ");
-            } else {
-                toast.error("ลบไม่สำเร็จ");
-            }
-        } catch {
-            toast.error("เกิดข้อผิดพลาด");
-        }
+                        if (res.ok) {
+                            await fetchLogs();
+                            toast.success("ลบรายการเรียบร้อยค่ะ");
+                        } else {
+                            toast.error("ลบไม่สำเร็จค่ะ");
+                        }
+                    } catch {
+                        toast.error("เกิดข้อผิดพลาด");
+                    }
+                },
+            },
+            cancel: {
+                label: "ยกเลิก",
+                onClick: () => { },
+            },
+        });
     };
 
     const startEdit = (log: any) => {
@@ -159,14 +168,21 @@ export default function LogGlucosePage() {
                 <h2 className="text-lg font-bold text-slate-800 mb-4">รายการบันทึกล่าสุด</h2>
                 <div className="space-y-3">
                     {logs.map((log: any) => (
-                        <div key={log.id} className="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+                        <div key={log.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-center transition-all hover:shadow-md">
                             <div>
-                                <p className="text-xl font-black text-teal-700">{log.value} mg/dL</p>
-                                <p className="text-xs text-slate-500">{log.type} • {log.mealType}</p>
+                                <p className="text-2xl font-extrabold text-teal-700 tracking-tight">{log.value} <span className="text-sm text-slate-400 font-medium">mg/dL</span></p>
+                                <div className="flex gap-2 mt-1">
+                                    <span className="text-[10px] uppercase font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+                                        {log.type === "fasting" ? "ก่อนอาหาร" : "หลังอาหาร"}
+                                    </span>
+                                    <span className="text-[10px] uppercase font-bold bg-teal-50 text-teal-600 px-2 py-0.5 rounded-md">
+                                        {log.mealType}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => startEdit(log)} className="text-blue-500 text-sm">แก้ไข</button>
-                                <button onClick={() => handleDelete(log.id)} className="text-red-500 text-sm">ลบ</button>
+                            <div className="flex flex-col gap-2">
+                                <button onClick={() => startEdit(log)} className="text-blue-500 text-xs font-bold hover:bg-blue-50 px-3 py-1 rounded-full transition-all">แก้ไข</button>
+                                <button onClick={() => handleDelete(log.id)} className="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1 rounded-full transition-all">ลบ</button>
                             </div>
                         </div>
                     ))}
