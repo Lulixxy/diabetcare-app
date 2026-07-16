@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLiff } from "@/src/context/LiffContext";
 import { FaTint, FaSyringe, FaPlus, FaHeartbeat } from "react-icons/fa";
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -79,23 +79,24 @@ export default function DashboardPage() {
                 <h1 className="text-2xl font-extrabold text-slate-800">สวัสดีค่ะ Luli</h1>
             </header>
 
-            {/* กราฟแท่งน้ำตาล */}
+            {/* Graph */}
             <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-64">
-                <h2 className="font-bold text-slate-800 mb-4">ระดับน้ำตาล (mg/dL)</h2>
+                <h2 className="font-bold text-slate-800 mb-4">ระดับน้ำตาลวันนี้ (mg/dL)</h2>
                 <ResponsiveContainer width="100%" height="80%">
-                    <BarChart data={chartData}>
+                    <BarChart data={chartData} margin={{ top: 20 }}>
                         <XAxis dataKey="time" hide />
                         <Tooltip cursor={{ fill: '#f1f5f9' }} />
-                        <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                        <Bar dataKey="value" radius={[8, 8, 8, 8]} barSize={40}>
                             {chartData.map((entry: any, index: number) => (
                                 <Cell key={`cell-${index}`} fill={entry.value > 150 ? "#ef4444" : "#14b8a6"} />
                             ))}
+                            <LabelList dataKey="value" position="top" style={{ fill: '#64748b', fontSize: '12px', fontWeight: 'bold' }} />
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </section>
 
-            {/* รวมรายการบันทึก (Timeline) */}
+            {/* Table Timeline */}
             <section className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <h2 className="font-bold text-slate-800 mb-4">ประวัติสุขภาพ</h2>
                 <div className="space-y-4">
@@ -105,7 +106,7 @@ export default function DashboardPage() {
                         timelineData.map((item: any) => (
                             <div key={item.id} className="flex items-center justify-between py-2">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-2.5 rounded-2xl ${item.type === 'glucose' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
+                                    <div className={`p-3 rounded-2xl ${item.type === 'glucose' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
                                         {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
                                     </div>
                                     <div>
@@ -126,6 +127,7 @@ export default function DashboardPage() {
                 </div>
             </section>
 
+            {/* Nav Button */}
             <div className="grid grid-cols-2 gap-4 pt-4">
                 <Link href="/log-glucose" className="flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-200">
                     <FaPlus /> น้ำตาล
