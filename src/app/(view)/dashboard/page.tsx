@@ -99,23 +99,32 @@ export default function DashboardPage() {
                     {timelineData.length === 0 ? (
                         <p className="text-sm text-slate-400 text-center py-4">ยังไม่มีข้อมูล</p>
                     ) : (
+
                         timelineData.map((item: any) => (
-                            <div key={item.id} className="flex justify-between items-center py-2 border-b border-slate-50">
+                            <div key={item.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${item.type === 'glucose' ? 'bg-red-100 text-red-500' : 'bg-blue-100 text-blue-500'}`}>
+                                    {/* ไอคอน */}
+                                    <div className={`p-2.5 rounded-2xl ${item.type === 'glucose' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
                                         {item.type === 'glucose' ? <FaTint /> : <FaSyringe />}
                                     </div>
+                                    {/* รายละเอียด */}
                                     <div>
-                                        <p className="font-bold text-slate-700">
+                                        <p className="font-bold text-slate-800 text-sm">
                                             {item.type === 'glucose' ? `${item.value} mg/dL` : `${item.units} Units`}
                                         </p>
-                                        <p className="text-xs text-slate-400">
-                                            {new Date(item.createdAt).toLocaleString("th-TH", { hour: '2-digit', minute: '2-digit' })}
+                                        <p className="text-[10px] text-slate-400">
+                                            {item.type === 'glucose' ? "ระดับน้ำตาล" : "อินซูลิน"}
                                         </p>
                                     </div>
                                 </div>
+
+                                {/* เวลา - ให้ชิดขวาเหมือนในรูปน้องชาย */}
+                                <p className="text-xs font-medium text-slate-500">
+                                    {new Date(item.createdAt).toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' })}
+                                </p>
                             </div>
                         ))
+
                     )}
                 </div>
             </section>
