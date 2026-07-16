@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  line_user_id String        @unique
+  name         String?
+  status       String        @default("active") // เพิ่มฟิลด์ status
+  glucoseLogs  GlucoseLog[]
+  insulinDoses InsulinDose[]
+  createdAt    DateTime      @default(now())
+}
+
+model GlucoseLog {
+  id        String   @id @default(uuid())
+  userId    String
+  value     Float
+  type      String  
+  mealType  String?  
+  note      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model InsulinDose {
+  id        String   @id @default(uuid())
+  userId    String
+  units     Float    
+  type      String   
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
