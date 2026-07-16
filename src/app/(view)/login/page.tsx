@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import liff from '@line/liff';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(true);
-
+    const router = useRouter();
     useEffect(() => {
         // 1. เริ่มต้น LIFF
         liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! })
@@ -34,12 +35,12 @@ export default function LoginPage() {
         const data = await res.json();
 
         if (data.exists && !data.suspended) {
-            window.location.href = '/dashboard'; // ไปหน้า Dashboard
+            router.push("/dashboard"); // ไปหน้า Dashboard
         } else if (data.suspended) {
             toast.error("บัญชีของคุณถูกระงับการใช้งานค่ะ");
         } else {
             // 4. ถ้ายังไม่เคยสมัครสมาชิก ให้ไปหน้าลงทะเบียน
-            window.location.href = '/register';
+            router.push("/register");
         }
     }
 
