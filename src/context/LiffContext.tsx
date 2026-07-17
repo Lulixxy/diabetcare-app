@@ -12,13 +12,22 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
         const init = async () => {
             try {
                 await liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! });
-                if (liff.isLoggedIn()) {
-                    const profile = await liff.getProfile();
-                    const res = await fetch("/api/auth/check", {
-                        method: "POST",
-                        body: JSON.stringify({ line_user_id: profile.userId }),
-                    });
-                    const data = await res.json();
+
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                const profile = await liff.getProfile();
+                const res = await fetch("/api/auth/check", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' }, // เพิ่ม header ด้วยนะคะ
+                    body: JSON.stringify({ line_user_id: profile.userId }),
+                });
+
+                const data = await res.json();
+
+                if (data.exists && data.user) {
                     setUserId(data.user.id);
                 }
             } catch (err) {
