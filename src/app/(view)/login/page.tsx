@@ -18,6 +18,7 @@ export default function LoginPage() {
     }, [userId, loading]);
 
     async function checkUserInDatabase(id: string) {
+        console.log("Checking LINE User =", id);
         const res = await fetch('/api/auth/check', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

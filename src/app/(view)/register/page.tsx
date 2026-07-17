@@ -11,6 +11,7 @@ export default function RegisterPage() {
     const { userId, loading } = useLiff();
 
     async function handleRegister() {
+        console.log("LINE UserId =", userId);
         if (!userId) return toast.error("ไม่พบข้อมูลผู้ใช้จาก LINE ค่ะ");
         if (!name.trim()) return toast.error("กรุณากรอกชื่อเล่นก่อนนะคะ");
 
