@@ -8,17 +8,16 @@ import { FaUser, FaChevronRight, FaRegSmile } from "react-icons/fa";
 export default function RegisterPage() {
     const [name, setName] = useState('');
     const router = useRouter();
-    const { userId, loading } = useLiff();
+    const { lineUserId, loading } = useLiff();
 
     async function handleRegister() {
-        console.log("LINE UserId =", userId);
-        if (!userId) return toast.error("ไม่พบข้อมูลผู้ใช้จาก LINE ค่ะ");
+        if (!lineUserId) return toast.error("ไม่พบข้อมูลผู้ใช้จาก LINE ค่ะ");
         if (!name.trim()) return toast.error("กรุณากรอกชื่อเล่นก่อนนะคะ");
 
         const res = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ line_user_id: userId, name }),
+            body: JSON.stringify({ line_user_id: lineUserId, name }),
         });
 
         if (res.ok) {

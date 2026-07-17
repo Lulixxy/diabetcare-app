@@ -7,15 +7,15 @@ import { FaHeartbeat, FaSpinner } from 'react-icons/fa';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { userId, loading } = useLiff();
+    const { lineUserId, loading } = useLiff();
 
     useEffect(() => {
-        if (!loading && userId) {
-            checkUserInDatabase(userId);
-        } else if (!loading && !userId) {
+        if (!loading && lineUserId) {
+            checkUserInDatabase(lineUserId);
+        } else if (!loading && !lineUserId) {
             toast.error("กรุณาล็อกอินผ่าน LINE ก่อนนะคะ");
         }
-    }, [userId, loading]);
+    }, [lineUserId, loading]);
 
     async function checkUserInDatabase(id: string) {
         console.log("Checking LINE User =", id);

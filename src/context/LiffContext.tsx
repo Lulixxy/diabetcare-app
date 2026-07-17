@@ -4,12 +4,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 
 interface LiffContextType {
-    userId: string | null;
+    lineUserId: string | null;
     loading: boolean;
 }
 
 const LiffContext = createContext<LiffContextType>({
-    userId: null,
+    lineUserId: null,
     loading: true,
 });
 
@@ -18,7 +18,7 @@ export function LiffProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const [userId, setUserId] = useState<string | null>(null);
+    const [lineUserId, setLineUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,10 +28,6 @@ export function LiffProvider({
                     liffId: process.env.NEXT_PUBLIC_LIFF_ID!,
                 });
 
-                console.log("LIFF Init Success");
-                console.log("isLoggedIn =", liff.isLoggedIn());
-                console.log("isInClient =", liff.isInClient());
-
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
@@ -39,11 +35,9 @@ export function LiffProvider({
 
                 const profile = await liff.getProfile();
 
-                console.log("LINE Profile =", profile);
-
-                setUserId(profile.userId);
+                setLineUserId(profile.userId);
             } catch (err) {
-                console.error("LIFF Init Failed", err);
+                console.error("LIFF Error", err);
             } finally {
                 setLoading(false);
             }
@@ -53,12 +47,7 @@ export function LiffProvider({
     }, []);
 
     return (
-        <LiffContext.Provider
-            value={{
-                userId,
-                loading,
-            }}
-        >
+        <LiffContext.Provider value={{ lineUserId, loading }}>
             {children}
         </LiffContext.Provider>
     );

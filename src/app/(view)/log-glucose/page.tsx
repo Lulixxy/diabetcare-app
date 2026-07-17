@@ -10,23 +10,23 @@ import { LuTrash2 } from "react-icons/lu";
 export default function LogGlucosePage() {
     const router = useRouter();
     const [formData, setFormData] = useState({ value: "", type: "fasting", mealType: "breakfast", note: "" });
-    const { userId, loading } = useLiff();
+    const { lineUserId, loading } = useLiff();
     const [logs, setLogs] = useState([]);
     const [editingId, setEditingId] = useState<string | null>(null);
 
     const fetchLogs = async () => {
-        if (!userId) return;
-        const res = await fetch(`/api/glucose/list?userId=${userId}`);
+        if (!lineUserId) return;
+        const res = await fetch(`/api/glucose/list?userId=${lineUserId}`);
         const data = await res.json();
         setLogs(data);
     };
 
     useEffect(() => {
-        if (userId) fetchLogs();
-    }, [userId]);
+        if (lineUserId) fetchLogs();
+    }, [lineUserId]);
 
     if (loading) return <div className="flex h-screen items-center justify-center">กำลังโหลด...</div>;
-    if (!userId) return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
+    if (!lineUserId) return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
 
     const handleDelete = async (id: string) => {
         toast("คุณต้องการลบรายการนี้ใช่ไหมคะ?", {
@@ -82,7 +82,7 @@ export default function LogGlucosePage() {
             body: JSON.stringify({
                 id: editingId,
                 ...formData,
-                userId,
+                userId: lineUserId,
             })
         });
 

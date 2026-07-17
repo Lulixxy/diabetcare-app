@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLiff } from "@/src/context/LiffContext";
 import { toast } from "sonner";
@@ -8,14 +7,7 @@ import { FaHeartbeat, FaArrowRight, FaSignInAlt, FaUserPlus } from "react-icons/
 
 export default function WelcomePage() {
   const router = useRouter();
-  const { userId, loading } = useLiff();
-
-  useEffect(() => {
-    if (!loading && userId) {
-      toast.info("ยินดีต้อนรับกลับมาค่ะ ระบบกำลังพาไปหน้า Dashboard");
-      router.push("/dashboard");
-    }
-  }, [userId, loading, router]);
+  const { lineUserId, loading } = useLiff();
 
   if (loading) {
     return (
@@ -45,7 +37,7 @@ export default function WelcomePage() {
       <div className="w-full space-y-6 mb-8">
         <button
           onClick={() => {
-            if (!userId) return toast.error("กรุณาล็อกอินผ่าน LINE ก่อนนะคะ");
+            if (!lineUserId) return toast.error("กรุณาล็อกอินผ่าน LINE ก่อนนะคะ");
             router.push("/register");
           }}
           className="w-full bg-teal-600 text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-teal-700 transition-all shadow-lg shadow-teal-200"
@@ -55,7 +47,7 @@ export default function WelcomePage() {
 
         <button
           onClick={() => {
-            if (!userId) return toast.error("กรุณาล็อกอินผ่าน LINE ก่อนนะคะ");
+            if (!lineUserId) return toast.error("กรุณาล็อกอินผ่าน LINE ก่อนนะคะ");
             router.push("/login");
           }}
           className="w-full text-teal-700 py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-teal-50 transition-all border-2 border-teal-100"

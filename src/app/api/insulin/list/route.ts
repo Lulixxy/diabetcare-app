@@ -5,16 +5,41 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
-  if (!userId) return NextResponse.json({ error: "ไม่พบ userId" }, { status: 400 });
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Missing LINE User ID" },
+      { status: 400 }
+    );
+  }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: {
+        line_user_id: userId,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json([]);
+    }
+
     const logs = await prisma.insulinDose.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
       take: 10,
     });
+
     return NextResponse.json(logs);
   } catch (error) {
-    return NextResponse.json({ error: "ดึงข้อมูลไม่ได้" }, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "ดึงข้อมูลไม่ได้" },
+      { status: 500 }
+    );
   }
 }

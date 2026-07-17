@@ -12,7 +12,7 @@ export default function LogInsulinPage() {
     const [units, setUnits] = useState("");
     const [type, setType] = useState("rapid");
     const [doses, setDoses] = useState([]);
-    const { userId, loading } = useLiff();
+    const { lineUserId, loading } = useLiff();
     const [editingId, setEditingId] = useState<string | null>(null);
 
     const handleDelete = async (id: string) => {
@@ -54,19 +54,19 @@ export default function LogInsulinPage() {
                 กำลังโหลด...
             </div>
         );
-    if (!userId)
+    if (!lineUserId)
         return <div className="p-6 text-center">กรุณาล็อกอินก่อนนะคะ</div>;
 
     const fetchDoses = async () => {
-        if (!userId) return;
-        const res = await fetch(`/api/insulin/list?userId=${userId}`);
+        if (!lineUserId) return;
+        const res = await fetch(`/api/insulin/list?userId=${lineUserId}`);
         const data = await res.json();
         setDoses(data);
     };
 
     useEffect(() => {
-        if (userId) fetchDoses();
-    }, [userId]);
+        if (lineUserId) fetchDoses();
+    }, [lineUserId]);
 
     const handleSubmit = async () => {
         const url = editingId ? "/api/insulin" : "/api/insulin/log";
@@ -80,7 +80,7 @@ export default function LogInsulinPage() {
         const res = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, units: parseFloat(units), type, id: editingId }),
+            body: JSON.stringify({ userId: lineUserId, units: parseFloat(units), type, id: editingId }),
         });
 
         if (res.ok) {

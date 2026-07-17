@@ -10,7 +10,7 @@ export default function DashboardPage() {
     const router = useRouter();
     const [data, setData] = useState({ glucoseLogs: [], insulinDoses: [] });
     const [fetchingData, setFetchingData] = useState(false);
-    const { userId, loading } = useLiff();
+    const { lineUserId, loading } = useLiff();
 
     const timelineData = useMemo(() => {
         const logs = [
@@ -49,13 +49,13 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
-            if (!userId) return;
+            if (!lineUserId) return;
             setFetchingData(true);
             try {
                 const dashRes = await fetch("/api/dashboard/data", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId: userId }),
+                    body: JSON.stringify({ userId: lineUserId }),
                 });
                 if (dashRes.ok) setData(await dashRes.json());
             } catch (error) {
@@ -65,9 +65,9 @@ export default function DashboardPage() {
             }
         };
         if (!loading) fetchDashboardData();
-    }, [userId, loading]);
+    }, [lineUserId, loading]);
 
-    if (loading || (userId && fetchingData && data.glucoseLogs.length === 0)) {
+    if (loading || (lineUserId && fetchingData && data.glucoseLogs.length === 0)) {
         return (
             <div className="flex flex-col justify-center items-center h-screen bg-slate-50">
                 <div className="animate-spin text-teal-600 text-4xl mb-4"><FaHeartbeat /></div>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
         );
     }
 
-    if (!userId) {
+    if (!lineUserId) {
         return (
             <div className="flex flex-col justify-center items-center h-screen bg-slate-50 p-6 text-center">
                 <div className="text-teal-600 text-5xl mb-6"><FaHeartbeat /></div>
