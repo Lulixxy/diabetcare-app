@@ -25,9 +25,15 @@ export async function POST(request: Request) {
       });
     }
 
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    
     const glucoseLogs = await prisma.glucoseLog.findMany({
       where: {
         userId: user.id,
+        createdAt: {
+          gte: startOfDay,
+        }
       },
       orderBy: {
         createdAt: "desc",
@@ -38,6 +44,9 @@ export async function POST(request: Request) {
     const insulinDoses = await prisma.insulinDose.findMany({
       where: {
         userId: user.id,
+        createdAt: {
+          gte: startOfDay,
+        },
       },
       orderBy: {
         createdAt: "desc",
